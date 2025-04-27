@@ -1,9 +1,11 @@
 package com.medicalclinixproxy.exception;
 
-public class PatientCannotRegisterException extends RuntimeException{
+import org.springframework.http.HttpStatusCode;
+import org.springframework.web.server.ResponseStatusException;
 
+public class PatientCannotRegisterException extends ResponseStatusException {
 
-    public PatientCannotRegisterException(String message) {
-        super(message);
+    public PatientCannotRegisterException(HttpStatusCode status, String reason) {
+        super(status, reason);
     }
 }

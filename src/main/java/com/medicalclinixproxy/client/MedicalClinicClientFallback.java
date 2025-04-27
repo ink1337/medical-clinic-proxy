@@ -6,6 +6,7 @@ import com.medicalclinixproxy.model.PageableDataDTO;
 import com.medicalclinixproxy.model.VisitDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -36,6 +37,6 @@ public class MedicalClinicClientFallback implements MedicalClinicClient {
 
     @Override
     public void registerPatientToVisit(Long visitId, Long patientId) {
-        throw new PatientCannotRegisterException("Patient could not be registered.");
+        throw new PatientCannotRegisterException(HttpStatus.BAD_REQUEST, "Patient could not be registered.");
     }
 }

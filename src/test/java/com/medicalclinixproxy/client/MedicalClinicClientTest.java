@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.matching.UrlPattern;
+import com.medicalclinixproxy.exception.PatientCannotRegisterException;
 import com.medicalclinixproxy.model.DoctorSimpleDTO;
 import com.medicalclinixproxy.model.PageableDataDTO;
 import com.medicalclinixproxy.model.PatientDTO;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.wiremock.spring.ConfigureWireMock;
 import org.wiremock.spring.EnableWireMock;
 import org.wiremock.spring.InjectWireMock;
@@ -25,6 +27,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.badRequest;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
@@ -36,6 +39,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathTemplate;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @EnableWireMock(@ConfigureWireMock(name = "medical-clinic", port = 8080))
@@ -181,24 +185,24 @@ public class MedicalClinicClientTest {
                 .withPathParam("patientId", equalTo(String.valueOf(patientId))));
     }
 
-//    @Test
-//    public void registerPatientToVisit_RequestFailed_ThrowsPatientNotRegisteredException() {
-//        Long patientId = 1L;
-//        Long visitId = 1L;
-//        UrlPattern pattern = urlPathTemplate("/registerPatientToVisit/{visitId}/{patientId}");
-//                server.stubFor(patch(pattern)
-//                .withPathParam("visitId", equalTo(String.valueOf(visitId)))
-//                .withPathParam("patientId", equalTo(String.valueOf(patientId)))
-//                .willReturn(badRequest()));
+    @Test
+    public void registerPatientToVisit_RequestFailed_ThrowsPatientCannotRegisterException() {
+        Long patientId = 1L;
+        Long visitId = 1L;
+        UrlPattern pattern = urlPathTemplate("/registerPatientToVisit/{visitId}/{patientId}");
+                server.stubFor(patch(pattern)
+                .withPathParam("visitId", equalTo(String.valueOf(visitId)))
+                .withPathParam("patientId", equalTo(String.valueOf(patientId)))
+                .willReturn(badRequest()));
 
-//        PatientNotRegisteredException exception = assertThrows(PatientNotRegisteredException.class, () -> client.registerPatientToVisit(visitId, patientId));
-//
-//        verify(1, patchRequestedFor(pattern)
-//                .withPathParam("visitId", equalTo(String.valueOf(visitId)))
-//                .withPathParam("patientId", equalTo(String.valueOf(patientId))));
-//        assertEquals("Patient could not be registered.", exception.getMessage());
-//        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-//    }
+        PatientCannotRegisterException exception = assertThrows(PatientCannotRegisterException.class, () -> client.registerPatientToVisit(visitId, patientId));
+
+        verify(1, patchRequestedFor(pattern)
+                .withPathParam("visitId", equalTo(String.valueOf(visitId)))
+                .withPathParam("patientId", equalTo(String.valueOf(patientId))));
+        assertEquals("Patient could not be registered.", exception.getReason());
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+    }
 
     public static Clock getTestClock() {
         return Clock.fixed(Instant.parse("2012-12-12T12:00:00Z"), ZoneOffset.UTC);
