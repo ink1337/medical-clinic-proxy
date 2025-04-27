@@ -1,5 +1,6 @@
 package com.medicalclinixproxy.client;
 
+import com.medicalclinixproxy.config.MedicalClinicClientConfig;
 import com.medicalclinixproxy.model.ExternalVisitFilter;
 import com.medicalclinixproxy.model.PageableDataDTO;
 import com.medicalclinixproxy.model.VisitDTO;
@@ -11,7 +12,10 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "medical-clinic")
+@FeignClient(name = "medical-clinic",
+        url = "${spring.cloud.openfeign.client.config.medical-clinic.url}",
+        configuration = MedicalClinicClientConfig.class,
+        fallback = MedicalClinicClientFallback.class)
 public interface MedicalClinicClient {
     @GetMapping("/visits")
     PageableDataDTO<VisitDTO> getVisits(@SpringQueryMap ExternalVisitFilter visitFilter, Pageable pageable);
@@ -19,6 +23,6 @@ public interface MedicalClinicClient {
     @GetMapping("/visits")
     PageableDataDTO<VisitDTO> getPatientVisits(@RequestParam Long patientId, Pageable pageable);
 
-    @PatchMapping("/{visitId}/patient/{patientId}")
+    @PatchMapping("/registerPatientToVisit/{visitId}/{patientId}")
     void registerPatientToVisit(@PathVariable("visitId") Long visitId, @PathVariable("patientId") Long patientId);
 }
